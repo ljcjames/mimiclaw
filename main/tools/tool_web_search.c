@@ -186,6 +186,20 @@ static void format_tavily_results(cJSON *root, char *output, size_t output_size)
     }
 }
 
+static char *build_tavily_payload(const char *query)
+{
+    cJSON *root = cJSON_CreateObject();
+    if (!root) return NULL;
+    cJSON_AddStringToObject(root, "api_key", s_tavily_key);
+    cJSON_AddStringToObject(root, "query", query);
+    cJSON_AddNumberToObject(root, "max_results", SEARCH_RESULT_COUNT);
+    cJSON_AddBoolToObject(root, "include_answer", false);
+    cJSON_AddStringToObject(root, "search_depth", "basic");
+    char *payload = cJSON_PrintUnformatted(root);
+    cJSON_Delete(root);
+    return payload;
+}
+
 /* ── Direct HTTPS request ─────────────────────────────────────── */
 
 static esp_err_t brave_search_direct(const char *url, search_buf_t *sb)
@@ -273,6 +287,110 @@ static esp_err_t brave_search_via_proxy(const char *path, search_buf_t *sb)
 
     if (status != 200) {
         ESP_LOGE(TAG, "Search API returned %d via proxy", status);
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
+static esp_err_t tavily_search_direct(const char *query, search_buf_t *sb)
+{
+    char *payload = build_tavily_payload(query);
+    if (!payload) return ESP_ERR_NO_MEM;
+
+    esp_http_client_config_t config = {
+        .url = "https://api.tavily.com/search",
+        .event_handler = http_event_handler,
+        .user_data = sb,
+        .timeout_ms = 15000,
+        .buffer_size = 4096,
+        .crt_bundle_attach = esp_crt_bundle_attach,
+    };
+
+    esp_http_client_handle_t client = esp_http_client_init(&config);
+    if (!client) {
+        free(payload);
+        return ESP_FAIL;
+    }
+
+    esp_http_client_set_method(client, HTTP_METHOD_POST);
+    esp_http_client_set_header(client, "Accept", "application/json");
+    esp_http_client_set_header(client, "Content-Type", "application/json");
+    esp_http_client_set_post_field(client, payload, strlen(payload));
+
+    esp_err_t err = esp_http_client_perform(client);
+    int status = esp_http_client_get_status_code(client);
+    esp_http_client_cleanup(client);
+    free(payload);
+
+    if (err != ESP_OK) return err;
+    if (status != 200) {
+        ESP_LOGE(TAG, "Tavily API returned %d", status);
+        return ESP_FAIL;
+    }
+    return ESP_OK;
+}
+
+static esp_err_t tavily_search_via_proxy(const char *query, search_buf_t *sb)
+{
+    proxy_conn_t *conn = proxy_conn_open("api.tavily.com", 443, 15000);
+    if (!conn) return ESP_ERR_HTTP_CONNECT;
+
+    char *payload = build_tavily_payload(query);
+    if (!payload) {
+        proxy_conn_close(conn);
+        return ESP_ERR_NO_MEM;
+    }
+
+    char header[768];
+    int hlen = snprintf(header, sizeof(header),
+        "POST /search HTTP/1.1\r\n"
+        "Host: api.tavily.com\r\n"
+        "Accept: application/json\r\n"
+        "Content-Type: application/json\r\n"
+        "Content-Length: %d\r\n"
+        "Connection: close\r\n\r\n",
+        (int)strlen(payload));
+
+    if (proxy_conn_write(conn, header, hlen) < 0 ||
+        proxy_conn_write(conn, payload, strlen(payload)) < 0) {
+        free(payload);
+        proxy_conn_close(conn);
+        return ESP_ERR_HTTP_WRITE_DATA;
+    }
+    free(payload);
+
+    char tmp[4096];
+    size_t total = 0;
+    while (1) {
+        int n = proxy_conn_read(conn, tmp, sizeof(tmp), 15000);
+        if (n <= 0) break;
+        size_t copy = (total + n < sb->cap - 1) ? (size_t)n : sb->cap - 1 - total;
+        if (copy > 0) {
+            memcpy(sb->data + total, tmp, copy);
+            total += copy;
+        }
+    }
+    sb->data[total] = '\0';
+    sb->len = total;
+    proxy_conn_close(conn);
+
+    int status = 0;
+    if (total > 5 && strncmp(sb->data, "HTTP/", 5) == 0) {
+        const char *sp = strchr(sb->data, ' ');
+        if (sp) status = atoi(sp + 1);
+    }
+
+    char *body = strstr(sb->data, "\r\n\r\n");
+    if (body) {
+        body += 4;
+        size_t blen = total - (body - sb->data);
+        memmove(sb->data, body, blen);
+        sb->len = blen;
+        sb->data[sb->len] = '\0';
+    }
+
+    if (status != 200) {
+        ESP_LOGE(TAG, "Tavily API returned %d via proxy", status);
         return ESP_FAIL;
     }
     return ESP_OK;
