@@ -37,11 +37,9 @@ MimiClaw 把一块小小的 ESP32-S3 开发板变成你的私人 AI 助理。插
 
 ### 你需要
 
-- 一块 **ESP32-S3 开发板**，16MB Flash + 8MB PSRAM（如小智 AI 开发板，~¥30）
-- 一根 **USB Type-C 数据线**
-- 一个 **Telegram Bot Token** — 在 Telegram 找 [@BotFather](https://t.me/BotFather) 创建
-- 一个 **Anthropic API Key** — 从 [console.anthropic.com](https://console.anthropic.com) 获取，或一个 **OpenAI API Key** — 从 [platform.openai.com](https://platform.openai.com) 获取
-
+- 一块 **ESP32-S3 开发板**，8MB Flash + 8MB PSRAM 即可（如 XIAO ESP32S3 Sense，~¥100）
+  - 也支持 16MB Flash 版本（如小智 AI 开发板，~¥30）
+  - **8MB Flash 用户**：编译前需要切换分区表（见下方说明）
 ### 安装
 
 ```bash
@@ -53,6 +51,23 @@ cd mimiclaw
 
 idf.py set-target esp32s3
 ```
+
+> **8MB Flash 开发板（如 XIAO ESP32S3 Sense）** 需要使用专用分区表：
+> ```bash
+> # 设置目标芯片
+> idf.py set-target esp32s3
+> 
+> # 使用 8MB Flash 分区表
+> idf.py menuconfig
+> # 进入 Partition Table → Partition Table → Custom partition table CSV
+> # 修改为 partitions_8mb.csv
+> ```
+> 
+> 或者在 `sdkconfig.defaults` 中添加：
+> ```
+> CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_8mb.csv"
+> ```
+
 
 <details>
 <summary>Ubuntu 安装</summary>
@@ -128,11 +143,42 @@ cp main/mimi_secrets.h.example main/mimi_secrets.h
 #define MIMI_SECRET_WIFI_PASS       "你的WiFi密码"
 #define MIMI_SECRET_TG_TOKEN        "123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11"
 #define MIMI_SECRET_API_KEY         "sk-ant-api03-xxxxx"
-#define MIMI_SECRET_MODEL_PROVIDER  "anthropic"     // "anthropic" 或 "openai"
+#define MIMI_SECRET_MODEL_PROVIDER  "anthropic"     // "anthropic"、"openai" 或 "bailian"
 #define MIMI_SECRET_SEARCH_KEY      ""              // 可选：Brave Search API key
 #define MIMI_SECRET_TAVILY_KEY      ""              // 可选：Tavily API key（优先）
 #define MIMI_SECRET_PROXY_HOST      "10.0.0.1"      // 可选：代理地址
 #define MIMI_SECRET_PROXY_PORT      "7897"           // 可选：代理端口
+```
+
+### 阿里云百炼配置
+
+MimiClaw 支持阿里云百炼大模型服务平台（glm-5、minimax m2.5、kimi k2.5、qwen 3.5 等）。百炼使用 OpenAI 兼容 API 格式。
+
+**方式一：使用百炼 provider（推荐）**
+
+```c
+#define MIMI_SECRET_MODEL_PROVIDER  "bailian"
+#define MIMI_SECRET_MODEL           "qwen-turbo"    // 或其他百炼模型
+#define MIMI_SECRET_API_KEY         "sk-xxxxx"      // 百炼 API Key
+```
+
+**方式二：使用自定义 API base**
+
+通过串口 CLI 设置：
+
+```
+mimi> set_model_provider openai
+mimi> set_api_base https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+mimi> set_model qwen-turbo
+mimi> set_api_key sk-xxxxx
+```
+
+**方式三：百炼编程计划**
+
+如果你使用百炼编程计划，API 地址略有不同：
+
+```
+mimi> set_api_base https://coding.dashscope.aliyuncs.com/v1/chat/completions
 ```
 
 然后编译烧录：

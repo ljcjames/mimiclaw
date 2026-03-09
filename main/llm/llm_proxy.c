@@ -18,9 +18,12 @@ static const char *TAG = "llm";
 #define LLM_DUMP_MAX_BYTES   (16 * 1024)
 #define LLM_DUMP_CHUNK_BYTES 320
 
+#define LLM_API_BASE_MAX_LEN 256
+
 static char s_api_key[LLM_API_KEY_MAX_LEN] = {0};
 static char s_model[LLM_MODEL_MAX_LEN] = MIMI_LLM_DEFAULT_MODEL;
 static char s_provider[16] = MIMI_LLM_PROVIDER_DEFAULT;
+static char s_api_base[LLM_API_BASE_MAX_LEN] = {0};
 
 static void llm_log_payload(const char *label, const char *payload)
 {
@@ -184,21 +187,39 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 
 static bool provider_is_openai(void)
 {
-    return strcmp(s_provider, "openai") == 0;
+    return strcmp(s_provider, "openai") == 0 || strcmp(s_provider, "bailian") == 0;
+}
+
+static bool provider_is_bailian(void)
+{
+    return strcmp(s_provider, "bailian") == 0;
 }
 
 static const char *llm_api_url(void)
 {
+    /* Custom API base takes priority */
+    if (s_api_base[0] != '\0') {
+        return s_api_base;
+    }
+    if (provider_is_bailian()) {
+        return MIMI_BAILIAN_API_URL;
+    }
     return provider_is_openai() ? MIMI_OPENAI_API_URL : MIMI_LLM_API_URL;
 }
 
 static const char *llm_api_host(void)
 {
+    if (provider_is_bailian()) {
+        return "dashscope.aliyuncs.com";
+    }
     return provider_is_openai() ? "api.openai.com" : "api.anthropic.com";
 }
 
 static const char *llm_api_path(void)
 {
+    if (provider_is_bailian()) {
+        return "/compatible-mode/v1/chat/completions";
+    }
     return provider_is_openai() ? "/v1/chat/completions" : "/v1/messages";
 }
 
@@ -234,6 +255,11 @@ esp_err_t llm_proxy_init(void)
         len = sizeof(provider_tmp);
         if (nvs_get_str(nvs, MIMI_NVS_KEY_PROVIDER, provider_tmp, &len) == ESP_OK && provider_tmp[0]) {
             safe_copy(s_provider, sizeof(s_provider), provider_tmp);
+        }
+        char base_tmp[LLM_API_BASE_MAX_LEN] = {0};
+        len = sizeof(base_tmp);
+        if (nvs_get_str(nvs, MIMI_NVS_KEY_API_BASE, base_tmp, &len) == ESP_OK && base_tmp[0]) {
+            safe_copy(s_api_base, sizeof(s_api_base), base_tmp);
         }
         nvs_close(nvs);
     }
@@ -809,3 +835,22 @@ esp_err_t llm_set_provider(const char *provider)
     ESP_LOGI(TAG, "Provider set to: %s", s_provider);
     return ESP_OK;
 }
+
+esp_err_t llm_set_api_base(const char *api_base)
+{
+    nvs_handle_t nvs;
+    ESP_ERROR_CHECK(nvs_open(MIMI_NVS_LLM, NVS_READWRITE, &nvs));
+    if (api_base && api_base[0]) {
+        ESP_ERROR_CHECK(nvs_set_str(nvs, MIMI_NVS_KEY_API_BASE, api_base));
+        safe_copy(s_api_base, sizeof(s_api_base), api_base);
+        ESP_LOGI(TAG, "API base set to: %s", s_api_base);
+    } else {
+        nvs_erase_key(nvs, MIMI_NVS_KEY_API_BASE);
+        s_api_base[0] = '\0';
+        ESP_LOGI(TAG, "Custom API base cleared");
+    }
+    ESP_ERROR_CHECK(nvs_commit(nvs));
+    nvs_close(nvs);
+    return ESP_OK;
+}
+

@@ -92,6 +92,8 @@
 #define MIMI_LLM_STREAM_BUF_SIZE     (32 * 1024)
 #define MIMI_LLM_LOG_VERBOSE_PAYLOAD 0
 #define MIMI_LLM_LOG_PREVIEW_BYTES   160
+#define MIMI_BAILIAN_API_URL        "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
+#define MIMI_BAILIAN_CODING_API_URL  "https://coding.dashscope.aliyuncs.com/v1/chat/completions"
 
 /* Message Bus */
 #define MIMI_BUS_QUEUE_LEN           16
@@ -148,4 +150,5 @@
 #define MIMI_NVS_KEY_MODEL           "model"
 #define MIMI_NVS_KEY_PROVIDER        "provider"
 #define MIMI_NVS_KEY_PROXY_HOST      "host"
+#define MIMI_NVS_KEY_API_BASE        "api_base"
 #define MIMI_NVS_KEY_PROXY_PORT      "port"

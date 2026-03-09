@@ -171,6 +171,25 @@ static int cmd_set_model_provider(int argc, char **argv)
     return 0;
 }
 
+/* --- set_api_base command --- */
+static struct {
+    struct arg_str *url;
+    struct arg_end *end;
+} api_base_args;
+
+static int cmd_set_api_base(int argc, char **argv)
+{
+    int nerrors = arg_parse(argc, argv, (void **)&api_base_args);
+    if (nerrors != 0) {
+        arg_print_errors(stderr, api_base_args.end, argv[0]);
+        return 1;
+    }
+    llm_set_api_base(api_base_args.url->sval[0]);
+    printf("API base URL set.\n");
+    return 0;
+}
+
+
 /* --- memory_read command --- */
 static int cmd_memory_read(int argc, char **argv)
 {
@@ -870,6 +889,17 @@ esp_err_t serial_cli_init(void)
         .argtable = &provider_args,
     };
     esp_console_cmd_register(&provider_cmd);
+
+    /* set_api_base */
+    api_base_args.url = arg_str1(NULL, NULL, "<url>", "Custom API base URL (e.g. https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions)");
+    api_base_args.end = arg_end(1);
+    esp_console_cmd_t api_base_cmd = {
+        .command = "set_api_base",
+        .help = "Set custom LLM API base URL for OpenAI-compatible endpoints",
+        .func = &cmd_set_api_base,
+        .argtable = &api_base_args,
+    };
+    esp_console_cmd_register(&api_base_cmd);
 
     /* skill_list */
     esp_console_cmd_t skill_list_cmd = {

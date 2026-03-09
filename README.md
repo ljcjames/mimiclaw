@@ -37,11 +37,9 @@ You send a message on Telegram. The ESP32-S3 picks it up over WiFi, feeds it int
 
 ### What You Need
 
-- An **ESP32-S3 dev board** with 16 MB flash and 8 MB PSRAM (e.g. Xiaozhi AI board, ~$10)
-- A **USB Type-C cable**
-- A **Telegram bot token** — talk to [@BotFather](https://t.me/BotFather) on Telegram to create one
-- An **Anthropic API key** — from [console.anthropic.com](https://console.anthropic.com), or an **OpenAI API key** — from [platform.openai.com](https://platform.openai.com)
-
+- An **ESP32-S3 dev board** with 8 MB flash and 8 MB PSRAM minimum (e.g. XIAO ESP32S3 Sense, ~$15)
+  - 16 MB flash boards also supported (e.g. Xiaozhi AI board, ~$10)
+  - **8 MB flash users**: switch partition table before building (see below)
 ### Install
 
 ```bash
@@ -53,6 +51,22 @@ cd mimiclaw
 
 idf.py set-target esp32s3
 ```
+
+> **8 MB flash boards (e.g. XIAO ESP32S3 Sense)** need a custom partition table:
+> ```bash
+> # Set target chip
+> idf.py set-target esp32s3
+> 
+> # Use 8MB flash partition table
+> idf.py menuconfig
+> # Navigate to Partition Table → Partition Table → Custom partition table CSV
+> # Change to partitions_8mb.csv
+> ```
+> 
+> Or add to `sdkconfig.defaults`:
+> ```
+> CONFIG_PARTITION_TABLE_CUSTOM_FILENAME="partitions_8mb.csv"
+> ```
 
 <details>
 <summary>Ubuntu Install</summary>
