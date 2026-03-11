@@ -168,7 +168,7 @@ MimiClaw 支持阿里云百炼大模型服务平台（glm-5、minimax m2.5、kim
 
 ```
 mimi> set_model_provider openai
-mimi> set_api_base https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
+mimi> set_api_base https://coding.dashscope.aliyuncs.com/compatible-mode/v1/chat/completions
 mimi> set_model qwen-turbo
 mimi> set_api_key sk-xxxxx
 ```
@@ -229,8 +229,9 @@ mimi> clear_proxy                    # 清除代理
 ```
 mimi> wifi_set MySSID MyPassword   # 换 WiFi
 mimi> set_tg_token 123456:ABC...   # 换 Telegram Bot Token
+mimi> set_qq_creds <APP_ID> <TOKEN>  # 设置 QQ Bot
 mimi> set_api_key sk-ant-api03-... # 换 API Key（Anthropic 或 OpenAI）
-mimi> set_model_provider openai    # 切换提供商（anthropic|openai）
+mimi> set_model_provider openai    # 切换提供商（anthropic|openai|bailian）
 mimi> set_model gpt-4o             # 换模型
 mimi> set_proxy 192.168.1.83 7897  # 设置代理
 mimi> clear_proxy                  # 清除代理

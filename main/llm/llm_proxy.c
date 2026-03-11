@@ -187,12 +187,17 @@ static esp_err_t http_event_handler(esp_http_client_event_t *evt)
 
 static bool provider_is_openai(void)
 {
-    return strcmp(s_provider, "openai") == 0 || strcmp(s_provider, "bailian") == 0;
+    return strcmp(s_provider, "openai") == 0;
 }
 
 static bool provider_is_bailian(void)
 {
     return strcmp(s_provider, "bailian") == 0;
+}
+
+static bool provider_is_anthropic_style(void)
+{
+    return strcmp(s_provider, "anthropic") == 0 || strcmp(s_provider, "bailian") == 0;
 }
 
 static const char *llm_api_url(void)
@@ -210,7 +215,7 @@ static const char *llm_api_url(void)
 static const char *llm_api_host(void)
 {
     if (provider_is_bailian()) {
-        return "dashscope.aliyuncs.com";
+        return "coding.dashscope.aliyuncs.com";
     }
     return provider_is_openai() ? "api.openai.com" : "api.anthropic.com";
 }
@@ -218,7 +223,7 @@ static const char *llm_api_host(void)
 static const char *llm_api_path(void)
 {
     if (provider_is_bailian()) {
-        return "/compatible-mode/v1/chat/completions";
+        return "/apps/anthropic/v1/messages";
     }
     return provider_is_openai() ? "/v1/chat/completions" : "/v1/messages";
 }
@@ -585,10 +590,10 @@ esp_err_t llm_chat_tools(const char *system_prompt,
     /* Build request body (non-streaming) */
     cJSON *body = cJSON_CreateObject();
     cJSON_AddStringToObject(body, "model", s_model);
-    if (provider_is_openai()) {
-        cJSON_AddNumberToObject(body, "max_completion_tokens", MIMI_LLM_MAX_TOKENS);
-    } else {
+    if (provider_is_anthropic_style()) {
         cJSON_AddNumberToObject(body, "max_tokens", MIMI_LLM_MAX_TOKENS);
+    } else {
+        cJSON_AddNumberToObject(body, "max_completion_tokens", MIMI_LLM_MAX_TOKENS);
     }
 
     if (provider_is_openai()) {
@@ -603,6 +608,7 @@ esp_err_t llm_chat_tools(const char *system_prompt,
             }
         }
     } else {
+        /* Anthropic-style (anthropic, bailian) */
         cJSON_AddStringToObject(body, "system", system_prompt);
 
         /* Deep-copy messages so caller keeps ownership */

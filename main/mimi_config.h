@@ -46,6 +46,18 @@
 #ifndef MIMI_SECRET_TAVILY_KEY
 #define MIMI_SECRET_TAVILY_KEY      ""
 #endif
+#ifndef MIMI_SECRET_QQ_APP_ID
+#define MIMI_SECRET_QQ_APP_ID       ""
+#endif
+#ifndef MIMI_SECRET_QQ_TOKEN
+#define MIMI_SECRET_QQ_TOKEN        ""
+#endif
+#ifndef MIMI_SECRET_DINGTALK_APP_KEY
+#define MIMI_SECRET_DINGTALK_APP_KEY ""
+#endif
+#ifndef MIMI_SECRET_DINGTALK_APP_SECRET
+#define MIMI_SECRET_DINGTALK_APP_SECRET ""
+#endif
 
 /* WiFi */
 #define MIMI_WIFI_MAX_RETRY          10
@@ -70,6 +82,19 @@
 #define MIMI_FEISHU_WEBHOOK_PATH         "/feishu/events"
 #define MIMI_FEISHU_WEBHOOK_MAX_BODY     (16 * 1024)
 
+/* QQ Bot */
+#define MIMI_QQ_MAX_MSG_LEN              4096
+#define MIMI_QQ_WEBHOOK_PORT             18791
+#define MIMI_QQ_WEBHOOK_PATH             "/qq/events"
+
+/* DingTalk Bot */
+#define MIMI_DINGTALK_MAX_MSG_LEN        4096
+#define MIMI_DINGTALK_WEBHOOK_PORT       18792
+#define MIMI_DINGTALK_WEBHOOK_PATH       "/dingtalk/events"
+
+/* Webhook Server */
+#define MIMI_WEBHOOK_PORT                18790
+
 /* Agent Loop */
 #define MIMI_AGENT_STACK             (24 * 1024)
 #define MIMI_AGENT_PRIO              6
@@ -83,8 +108,8 @@
 #define MIMI_TIMEZONE                "PST8PDT,M3.2.0,M11.1.0"
 
 /* LLM */
-#define MIMI_LLM_DEFAULT_MODEL       "claude-opus-4-5"
-#define MIMI_LLM_PROVIDER_DEFAULT    "anthropic"
+#define MIMI_LLM_DEFAULT_MODEL       "MiniMax-M2.5"
+#define MIMI_LLM_PROVIDER_DEFAULT    "bailian"
 #define MIMI_LLM_MAX_TOKENS          4096
 #define MIMI_LLM_API_URL             "https://api.anthropic.com/v1/messages"
 #define MIMI_OPENAI_API_URL          "https://api.openai.com/v1/chat/completions"
@@ -92,8 +117,7 @@
 #define MIMI_LLM_STREAM_BUF_SIZE     (32 * 1024)
 #define MIMI_LLM_LOG_VERBOSE_PAYLOAD 0
 #define MIMI_LLM_LOG_PREVIEW_BYTES   160
-#define MIMI_BAILIAN_API_URL        "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions"
-#define MIMI_BAILIAN_CODING_API_URL  "https://coding.dashscope.aliyuncs.com/v1/chat/completions"
+#define MIMI_BAILIAN_API_URL        "https://coding.dashscope.aliyuncs.com/apps/anthropic/v1/messages"
 
 /* Message Bus */
 #define MIMI_BUS_QUEUE_LEN           16
@@ -135,6 +159,8 @@
 #define MIMI_NVS_WIFI                "wifi_config"
 #define MIMI_NVS_TG                  "tg_config"
 #define MIMI_NVS_FEISHU              "feishu_config"
+#define MIMI_NVS_QQ                  "qq_config"
+#define MIMI_NVS_DINGTALK            "dingtalk_config"
 #define MIMI_NVS_LLM                 "llm_config"
 #define MIMI_NVS_PROXY               "proxy_config"
 #define MIMI_NVS_SEARCH              "search_config"
@@ -145,6 +171,10 @@
 #define MIMI_NVS_KEY_TG_TOKEN        "bot_token"
 #define MIMI_NVS_KEY_FEISHU_APP_ID   "app_id"
 #define MIMI_NVS_KEY_FEISHU_APP_SECRET "app_secret"
+#define MIMI_NVS_KEY_QQ_APP_ID       "app_id"
+#define MIMI_NVS_KEY_QQ_TOKEN        "token"
+#define MIMI_NVS_KEY_DINGTALK_APP_KEY "app_key"
+#define MIMI_NVS_KEY_DINGTALK_APP_SECRET "app_secret"
 #define MIMI_NVS_KEY_API_KEY         "api_key"
 #define MIMI_NVS_KEY_TAVILY_KEY      "tavily_key"
 #define MIMI_NVS_KEY_MODEL           "model"
