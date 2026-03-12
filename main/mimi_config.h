@@ -182,3 +182,39 @@
 #define MIMI_NVS_KEY_PROXY_HOST      "host"
 #define MIMI_NVS_KEY_API_BASE        "api_base"
 #define MIMI_NVS_KEY_PROXY_PORT      "port"
+
+/* ============================================================================ */
+/* Hardware Peripherals Configuration */
+/* ============================================================================ */
+
+/* I2C Bus (for AHT10 and other I2C devices) */
+#ifndef MIMI_I2C_NUM
+#define MIMI_I2C_NUM                I2C_NUM_0
+#endif
+#ifndef MIMI_I2C_SDA_GPIO
+#define MIMI_I2C_SDA_GPIO           GPIO_NUM_NC    /* Set to e.g. GPIO_NUM_5 for XIAO D4 */
+#endif
+#ifndef MIMI_I2C_SCL_GPIO
+#define MIMI_I2C_SCL_GPIO           GPIO_NUM_NC    /* Set to e.g. GPIO_NUM_6 for XIAO D5 */
+#endif
+
+/* WS2812 RGB LED Strip */
+#ifndef MIMI_LED_STRIP_GPIO
+#define MIMI_LED_STRIP_GPIO         GPIO_NUM_8    // D9    /* Set to valid GPIO, e.g. GPIO_NUM_21 */
+#endif
+#ifndef MIMI_LED_STRIP_COUNT
+#define MIMI_LED_STRIP_COUNT        10              /* Number of LEDs in strip */
+#endif
+
+/* Passive Buzzer */
+#ifndef MIMI_BUZZER_GPIO
+#define MIMI_BUZZER_GPIO            GPIO_NUM_10 //D9    /* Set to valid GPIO for buzzer */
+#endif
+
+/* DHT Temperature/Humidity Sensor */
+#ifndef MIMI_DHT_GPIO
+#define MIMI_DHT_GPIO               GPIO_NUM_3 //D2    /* Set to valid GPIO for DHT data */
+#endif
+#ifndef MIMI_DHT_TYPE
+#define MIMI_DHT_TYPE               0              /* 0=DHT11, 1=DHT22/AM2302 */
+#endif

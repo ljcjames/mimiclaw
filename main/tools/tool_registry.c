@@ -4,6 +4,12 @@
 #include "tools/tool_get_time.h"
 #include "tools/tool_files.h"
 #include "tools/tool_cron.h"
+#include "tools/tool_hardware.h"
+#include "mimi_config.h"
+#include "tools/tool_web_search.h"
+#include "tools/tool_get_time.h"
+#include "tools/tool_files.h"
+#include "tools/tool_cron.h"
 
 #include <string.h>
 #include "esp_log.h"
@@ -11,7 +17,7 @@
 
 static const char *TAG = "tools";
 
-#define MAX_TOOLS 12
+#define MAX_TOOLS 16
 
 static mimi_tool_t s_tools[MAX_TOOLS];
 static int s_tool_count = 0;
@@ -174,6 +180,65 @@ esp_err_t tool_registry_init(void)
             "\"required\":[\"job_id\"]}",
         .execute = tool_cron_remove_execute,
     };
+    register_tool(&cr);
+
+    /* Initialize and register hardware tools */
+    tool_hardware_init();
+
+    /* Register led_control */
+    mimi_tool_t led = {
+        .name = "led_control",
+        .description = "Control WS2812 RGB LED(s). Set color, clear, or adjust brightness.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{"
+            "\"action\":{\"type\":\"string\",\"description\":\"Action: 'set', 'clear', or 'brightness'\"},"
+            "\"r\":{\"type\":\"integer\",\"description\":\"Red value 0-255 (for 'set')\"},"
+            "\"g\":{\"type\":\"integer\",\"description\":\"Green value 0-255 (for 'set')\"},"
+            "\"b\":{\"type\":\"integer\",\"description\":\"Blue value 0-255 (for 'set')\"},"
+            "\"index\":{\"type\":\"integer\",\"description\":\"LED index (optional, defaults to all)\"},"
+            "\"level\":{\"type\":\"integer\",\"description\":\"Brightness 0-100 (for 'brightness')\"}"
+            "},"
+            "\"required\":[\"action\"]}",
+        .execute = tool_led_execute,
+    };
+    register_tool(&led);
+
+    /* Register buzzer_control */
+    mimi_tool_t buzzer = {
+        .name = "buzzer_control",
+        .description = "Control passive buzzer. Play tones, beeps, or stop.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{"
+            "\"action\":{\"type\":\"string\",\"description\":\"Action: 'tone', 'beep', 'stop', or 'volume'\"},"
+            "\"freq\":{\"type\":\"integer\",\"description\":\"Frequency in Hz (for 'tone', default 1000)\"},"
+            "\"duration\":{\"type\":\"integer\",\"description\":\"Duration in ms (for 'tone', default 500)\"},"
+            "\"count\":{\"type\":\"integer\",\"description\":\"Number of beeps (for 'beep', default 1)\"},"
+            "\"on_ms\":{\"type\":\"integer\",\"description\":\"Beep on duration in ms (default 100)\"},"
+            "\"off_ms\":{\"type\":\"integer\",\"description\":\"Beep off duration in ms (default 100)\"},"
+            "\"level\":{\"type\":\"integer\",\"description\":\"Volume 0-100 (for 'volume')\"}"
+            "},"
+            "\"required\":[\"action\"]}",
+        .execute = tool_buzzer_execute,
+    };
+    register_tool(&buzzer);
+
+    /* Register sensor_read */
+    mimi_tool_t sensor = {
+        .name = "sensor_read",
+        .description = "Read temperature and humidity from AHT10 or DHT sensor.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{"
+            "\"sensor\":{\"type\":\"string\",\"description\":\"Sensor: 'aht10', 'dht', or 'all'\"}"
+            "},"
+            "\"required\":[\"sensor\"]}",
+        .execute = tool_sensor_execute,
+    };
+    register_tool(&sensor);
+
+    build_tools_json();
     register_tool(&cr);
 
     build_tools_json();
