@@ -24,14 +24,17 @@ idf_component_register(
         "tools/tool_get_time.c"
         "tools/tool_files.c"
         "tools/tool_hardware.c"
+        "tools/tool_display_mqtt.c"
         "hardware/buzzer.c"
         "hardware/aht10.c"
         "hardware/dht.c"
+        "hardware/ili9341.c"
+        "hardware/aliyun_mqtt.c"
         "skills/skill_loader.c"
     INCLUDE_DIRS
         "."
     REQUIRES
         nvs_flash esp_wifi esp_netif esp_http_client esp_http_server
         esp_https_ota esp_event spiffs console vfs app_update esp-tls
-        esp_timer esp_websocket_client driver json
+        esp_timer esp_websocket_client driver json mqtt
 )

@@ -213,8 +213,66 @@
 
 /* DHT Temperature/Humidity Sensor */
 #ifndef MIMI_DHT_GPIO
-#define MIMI_DHT_GPIO               GPIO_NUM_3 //D2    /* Set to valid GPIO for DHT data */
+#define MIMI_DHT_GPIO               GPIO_NUM_3    /* D2: Set to valid GPIO for DHT data */
 #endif
 #ifndef MIMI_DHT_TYPE
 #define MIMI_DHT_TYPE               0              /* 0=DHT11, 1=DHT22/AM2302 */
+#endif
+
+/* ============================================================================ */
+/* TFT Display Configuration (ILI9341 SPI) */
+/* ============================================================================ */
+
+#ifndef MIMI_TFT_ENABLED
+#define MIMI_TFT_ENABLED            1              /* 1=enabled, 0=disabled */
+#endif
+
+/* SPI GPIO pins for ILI9341 */
+#ifndef MIMI_TFT_MOSI_GPIO
+#define MIMI_TFT_MOSI_GPIO          GPIO_NUM_35    /* SPI MOSI */
+#endif
+#ifndef MIMI_TFT_CLK_GPIO
+#define MIMI_TFT_CLK_GPIO           GPIO_NUM_36    /* SPI Clock */
+#endif
+#ifndef MIMI_TFT_CS_GPIO
+#define MIMI_TFT_CS_GPIO            GPIO_NUM_34    /* Chip Select */
+#endif
+#ifndef MIMI_TFT_DC_GPIO
+#define MIMI_TFT_DC_GPIO            GPIO_NUM_37    /* Data/Command */
+#endif
+#ifndef MIMI_TFT_RST_GPIO
+#define MIMI_TFT_RST_GPIO           GPIO_NUM_38    /* Reset (or GPIO_NUM_NC for no reset) */
+#endif
+#ifndef MIMI_TFT_BL_GPIO
+#define MIMI_TFT_BL_GPIO            GPIO_NUM_39    /* Backlight (or GPIO_NUM_NC for always on) */
+#endif
+
+/* SPI speed: 40MHz is safe for most ILI9341 */
+#ifndef MIMI_TFT_SPI_SPEED_HZ
+#define MIMI_TFT_SPI_SPEED_HZ       (40 * 1000 * 1000)
+#endif
+
+/* ============================================================================ */
+/* Aliyun IoT MQTT Configuration */
+/* ============================================================================ */
+
+#ifndef MIMI_MQTT_ENABLED
+#define MIMI_MQTT_ENABLED           1              /* 1=enabled, 0=disabled */
+#endif
+
+/* Aliyun IoT credentials (set in mimi_secrets.h or via CLI) */
+#ifndef MIMI_SECRET_ALIYUN_PRODUCT_KEY
+#define MIMI_SECRET_ALIYUN_PRODUCT_KEY    ""
+#endif
+#ifndef MIMI_SECRET_ALIYUN_DEVICE_NAME
+#define MIMI_SECRET_ALIYUN_DEVICE_NAME    ""
+#endif
+#ifndef MIMI_SECRET_ALIYUN_DEVICE_SECRET
+#define MIMI_SECRET_ALIYUN_DEVICE_SECRET  ""
+#endif
+
+/* Default subscription topic for temperature/humidity */
+/* Format: /${ProductKey}/${DeviceName}/user/data */
+#ifndef MIMI_MQTT_DEFAULT_TEMP_TOPIC
+#define MIMI_MQTT_DEFAULT_TEMP_TOPIC     ""
 #endif

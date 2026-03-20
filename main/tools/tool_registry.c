@@ -5,11 +5,7 @@
 #include "tools/tool_files.h"
 #include "tools/tool_cron.h"
 #include "tools/tool_hardware.h"
-#include "mimi_config.h"
-#include "tools/tool_web_search.h"
-#include "tools/tool_get_time.h"
-#include "tools/tool_files.h"
-#include "tools/tool_cron.h"
+#include "tools/tool_display_mqtt.h"
 
 #include <string.h>
 #include "esp_log.h"
@@ -17,7 +13,7 @@
 
 static const char *TAG = "tools";
 
-#define MAX_TOOLS 16
+#define MAX_TOOLS 24
 
 static mimi_tool_t s_tools[MAX_TOOLS];
 static int s_tool_count = 0;
@@ -238,8 +234,98 @@ esp_err_t tool_registry_init(void)
     };
     register_tool(&sensor);
 
-    build_tools_json();
-    register_tool(&cr);
+    /* Initialize display and MQTT tools */
+    tool_display_mqtt_init();
+
+    /* Register mqtt_read_temp */
+    mimi_tool_t mqtt_temp = {
+        .name = "mqtt_read_temp",
+        .description = "Read temperature from MQTT subscription (Aliyun IoT). Returns temperature in Celsius.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{},"
+            "\"required\":[]}",
+        .execute = tool_mqtt_read_temp_execute,
+    };
+    register_tool(&mqtt_temp);
+
+    /* Register mqtt_read_humidity */
+    mimi_tool_t mqtt_humid = {
+        .name = "mqtt_read_humidity",
+        .description = "Read humidity from MQTT subscription (Aliyun IoT). Returns humidity in percent.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{},"
+            "\"required\":[]}",
+        .execute = tool_mqtt_read_humidity_execute,
+    };
+    register_tool(&mqtt_humid);
+
+    /* Register mqtt_subscribe */
+    mimi_tool_t mqtt_sub = {
+        .name = "mqtt_subscribe",
+        .description = "Subscribe to an MQTT topic for temperature/humidity data.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{"
+            "\"topic\":{\"type\":\"string\",\"description\":\"MQTT topic to subscribe\"}"
+            "},"
+            "\"required\":[\"topic\"]}",
+        .execute = tool_mqtt_subscribe_execute,
+    };
+    register_tool(&mqtt_sub);
+
+    /* Register mqtt_publish */
+    mimi_tool_t mqtt_pub = {
+        .name = "mqtt_publish",
+        .description = "Publish a message to an MQTT topic.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{"
+            "\"topic\":{\"type\":\"string\",\"description\":\"MQTT topic\"},"
+            "\"payload\":{\"type\":\"string\",\"description\":\"Message payload\"}"
+            "},"
+            "\"required\":[\"topic\",\"payload\"]}",
+        .execute = tool_mqtt_publish_execute,
+    };
+    register_tool(&mqtt_pub);
+
+    /* Register tft_show */
+    mimi_tool_t tft_show = {
+        .name = "tft_show",
+        .description = "Control TFT display. Actions: 'dashboard' (show temp/humid/status), 'clear', 'fill', 'text'.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{"
+            "\"action\":{\"type\":\"string\",\"description\":\"Action: 'dashboard', 'clear', 'fill', 'text'\"},"
+            "\"temperature\":{\"type\":\"number\",\"description\":\"Temperature for dashboard\"},"
+            "\"humidity\":{\"type\":\"number\",\"description\":\"Humidity for dashboard\"},"
+            "\"wifi_status\":{\"type\":\"string\",\"description\":\"WiFi status text\"},"
+            "\"mqtt_status\":{\"type\":\"string\",\"description\":\"MQTT status text\"},"
+            "\"color\":{\"type\":\"string\",\"description\":\"Color for fill: 'white','red','green','blue','yellow','cyan','orange'\"},"
+            "\"text\":{\"type\":\"string\",\"description\":\"Text to display (for 'text' action)\"},"
+            "\"x\":{\"type\":\"integer\",\"description\":\"X position (for 'text')\"},"
+            "\"y\":{\"type\":\"integer\",\"description\":\"Y position (for 'text')\"}"
+            "},"
+            "\"required\":[\"action\"]}",
+        .execute = tool_tft_show_execute,
+    };
+    register_tool(&tft_show);
+
+    /* Register tft_notification */
+    mimi_tool_t tft_notif = {
+        .name = "tft_notification",
+        .description = "Show a notification message on TFT display.",
+        .input_schema_json =
+            "{\"type\":\"object\","
+            "\"properties\":{"
+            "\"message\":{\"type\":\"string\",\"description\":\"Notification message to display\"},"
+            "\"duration_ms\":{\"type\":\"integer\",\"description\":\"Display duration in ms (default 5000)\"}"
+            "},"
+            "\"required\":[\"message\"]}",
+        .execute = tool_tft_notification_execute,
+    };
+    register_tool(&tft_notif);
 
     build_tools_json();
 
